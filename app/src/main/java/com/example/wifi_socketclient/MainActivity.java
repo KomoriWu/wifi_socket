@@ -16,7 +16,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -26,8 +30,8 @@ import java.net.MulticastSocket;
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
     private MulticastSocket mSocketSend;
-
     private Button mBtnSend;
+    private TextView mTv;
     public static final String IP = "224.0.0.1";
     public static final int PORT = 8888;
     private String mSendStr = "hello";
@@ -36,11 +40,17 @@ public class MainActivity extends AppCompatActivity {
     private Intent mIntent;
     private ReceiveServiceInterface mServiceInterface;
     private MyServiceConn mServiceConn;
+    private StringBuffer mStringBuffer;
+
+    @SuppressLint("CutPasteId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mBtnSend = (Button) findViewById(R.id.btn_send);
+        mTv = (TextView) findViewById(R.id.tv);
+        mStringBuffer = new StringBuffer();
+        EventBus.getDefault().register(this);
         try {
             mSocketSend = new MulticastSocket();
             mAddress = InetAddress.getByName(IP);
@@ -60,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         });
         initService();
     }
+
     private class MyServiceConn implements ServiceConnection {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -72,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
     private void initService() {
         mServiceConn = new MyServiceConn();
         mIntent = new Intent(this, ReceiveService.class);
@@ -85,10 +97,17 @@ public class MainActivity extends AppCompatActivity {
         mSocketSend.setTimeToLive(4);
         byte[] data = mSendStr.getBytes();
         //这个地方可以输出判断该地址是不是广播类型的地址
-        Log.d(TAG, "address:" + mAddress.isMulticastAddress() );
+        Log.d(TAG, "address:" + mAddress.isMulticastAddress());
         dataPacket = new DatagramPacket(data, data.length, mAddress, PORT);
         mSocketSend.send(dataPacket);
+
 //        mSocketSend.close();
+    }
+
+    @Subscribe
+    public void onEventMainThread(FirstEvent event) {
+        mStringBuffer.append(event.getMsg()).append("\n");
+        mTv.setText(mStringBuffer.toString());
     }
 
     private String getLocalIp() {

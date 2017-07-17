@@ -12,6 +12,8 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -26,6 +28,7 @@ public class ReceiveService extends Service {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            EventBus.getDefault().post(new FirstEvent( msg.getData().getString(DATA)));
             Log.d(TAG, "client data : " + msg.getData().getString(DATA));
         }
     };
