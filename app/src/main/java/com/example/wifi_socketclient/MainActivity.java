@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         mSocketSend.setTimeToLive(4);
         byte[] data = mSendStr.getBytes();
         //这个地方可以输出判断该地址是不是广播类型的地址
-        Log.d(TAG, "address:" + mAddress.isMulticastAddress() + "  IP:" + getLocalIp());
+        Log.d(TAG, "address:" + mAddress.isMulticastAddress() );
         dataPacket = new DatagramPacket(data, data.length, mAddress, PORT);
         mSocketSend.send(dataPacket);
 //        mSocketSend.close();

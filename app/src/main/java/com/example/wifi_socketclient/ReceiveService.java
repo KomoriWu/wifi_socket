@@ -37,29 +37,35 @@ public class ReceiveService extends Service {
         try {
             mSocketReceive = new MulticastSocket(MainActivity.PORT);
             mSocketReceive.joinGroup(InetAddress.getByName(MainActivity.IP));
-            new AsyncTask<Void, Void, String>() {
-                @Override
-                protected String doInBackground(Void... voids) {
-                    byte buf[] = new byte[1024];
-                    DatagramPacket dp = new DatagramPacket(buf, 1024);
-                    while (true) {
-                        try {
-                            mSocketReceive.receive(dp);
-                            Log.d(TAG, "client : " + new String(buf, 0, dp.getLength()));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return new String(buf, 0, dp.getLength());
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(String s) {
-                    super.onPostExecute(s);
-
-                }
-            }.execute();
+//            new AsyncTask<Void, Void, String>() {
+//                @Override
+//                protected String doInBackground(Void... voids) {
+//                    byte buf[] = new byte[1024];
+//                    DatagramPacket dp = new DatagramPacket(buf, 1024);
+//                    while (true) {
+//                        try {
+//                            mSocketReceive.receive(dp);
+//                            Log.d(TAG, "client : " + new String(buf, 0, dp.getLength()));
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                        return new String(buf, 0, dp.getLength());
+//                    }
+//                }
+//
+//                @Override
+//                protected void onPostExecute(String s) {
+//                    super.onPostExecute(s);
+//
+//                }
+//            }.execute();
 //            receive();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    receive();
+                }
+            }).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
