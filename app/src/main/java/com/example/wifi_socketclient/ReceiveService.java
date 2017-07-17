@@ -5,7 +5,10 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,7 +19,16 @@ import java.net.MulticastSocket;
 
 public class ReceiveService extends Service {
     public static final String TAG = ReceiveService.class.getSimpleName();
+    public static final String DATA="data";
     private MulticastSocket mSocketReceive;
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            Log.d(TAG, "client data : " + msg.getData().getString(DATA));
+        }
+    };
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -37,29 +49,6 @@ public class ReceiveService extends Service {
         try {
             mSocketReceive = new MulticastSocket(MainActivity.PORT);
             mSocketReceive.joinGroup(InetAddress.getByName(MainActivity.IP));
-//            new AsyncTask<Void, Void, String>() {
-//                @Override
-//                protected String doInBackground(Void... voids) {
-//                    byte buf[] = new byte[1024];
-//                    DatagramPacket dp = new DatagramPacket(buf, 1024);
-//                    while (true) {
-//                        try {
-//                            mSocketReceive.receive(dp);
-//                            Log.d(TAG, "client : " + new String(buf, 0, dp.getLength()));
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                        return new String(buf, 0, dp.getLength());
-//                    }
-//                }
-//
-//                @Override
-//                protected void onPostExecute(String s) {
-//                    super.onPostExecute(s);
-//
-//                }
-//            }.execute();
-//            receive();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -70,13 +59,19 @@ public class ReceiveService extends Service {
             e.printStackTrace();
         }
     }
+
     private void receive() {
         byte buf[] = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, 1024);
         while (true) {
             try {
                 mSocketReceive.receive(dp);
-                Log.d(TAG, "client ip : "+new String(buf, 0, dp.getLength()));
+                String data = new String(buf, 0, dp.getLength());
+                Message message = new Message();
+                Bundle bundle = new Bundle();
+                bundle.putString(DATA, data);
+                message.setData(bundle);
+                mHandler.sendMessage(message);
             } catch (Exception e) {
                 e.printStackTrace();
             }
